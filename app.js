@@ -17,9 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //Создаю переменные 
     const entryArr = JSON.parse(localStorage.getItem('entryArr')) || [],
-        dateCreation = [];
+        dateCreation = JSON.parse(localStorage.getItem('dateArr')) || [];
 
-    console.log('osn', entryArr);
 
     // Дата
     function showTime() {
@@ -41,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showTime();
     setInterval(showTime, 1000);
 
-    // При сохранении записи записываю и число, когда была создана запись
+    // При сохранении записи записываю и число, когда была создана запись || ч1
     function dateOfCreation() {
         const date = new Date();
         let h = date.getDate(),
@@ -50,8 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
         let timeOfCreation = `${checkTime(h)} ${checkMonth(m)} ${checkTime(s)}`;
 
         dateCreation.push(timeOfCreation);
-        console.log('dateCreation: ', dateCreation);
-        return timeOfCreation;
+        localStorage.setItem("dateArr", JSON.stringify(dateCreation));
+
+        return dateCreation;
     }
     function checkMonth(month) {
         if (month == 0) {
@@ -91,9 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return "Декабря";
         }
     }
-
-
-    const delEntry = (entry, entryArr) => {
+    // удаление записей и из памяти, и из массива +удаление даты (и из памяти, и из массива)
+    const delEntry = (entry, entryArr, dateCreation) => {
 
         entry.forEach((element, index) => {
 
@@ -101,9 +100,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (event.target.id == "del") {
 
                     entryArr.splice(index, 1);
-
+                    dateCreation.splice(index, 1);
+                    localStorage.setItem("dateArr", JSON.stringify(dateCreation));
                     localStorage.setItem("entryArr", JSON.stringify(entryArr));
-                    render(entryArr);
+
+                    render(entryArr, dateCreation);
                     return true;
                 }
 
@@ -115,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // render
-    const render = (entryArr) => {
+    const render = (entryArr, dateArr) => {
         test.innerHTML = "";
         entryArr.forEach((elem, i) => {
 
@@ -123,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="entry" data-number="${i}">
                 <section class="section-1">
                     <div class="section-data">
-                        ${dateOfCreation()}
+                     ${dateArr[i]}
                     </div>
                     <div class="row row-section">
                         <div class="section-options" id="eye">
@@ -148,20 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
             hideText = document.querySelectorAll(".hide-text");
 
         showEye(entry, hideText);
-        delEntry(entry, entryArr);
+        delEntry(entry, entryArr, dateArr);
 
     };
 
-    //Проверяю, закрыл ли я раньше подсказки
-    // const checkCloseHintStorage = () => {
-    //     if (localStorage.getItem() == "none") {
 
-    //     }
-    // }
     //Закрываю все подсказки
     const closeHint = () => {
         let closeInfoNumber = JSON.parse(localStorage.getItem("closeHintInfoNumber")) || [];
-        console.log(closeInfoNumber);
         if (closeInfoNumber != "") {
             closeInfoNumber.forEach((element, i) => {
                 hint.forEach((elem, index) => {
@@ -225,7 +220,9 @@ document.addEventListener("DOMContentLoaded", () => {
         formEntry.reset();
         entryArr.push(obj);
         localStorage.setItem("entryArr", JSON.stringify(entryArr));
-        render(entryArr);
+
+        render(entryArr, dateOfCreation());
+
         block.classList.remove("none");
         block.classList.add("block");
         none.classList.add("none");
@@ -235,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // showEye(entry, hideText);
 
     });
-    render(entryArr);
+    render(entryArr, dateCreation);
 
     //Перехожу на страницу добавление
     add.addEventListener("click", () => {
@@ -247,7 +244,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //Кнопка возврата на главную страницу
     cancelText.addEventListener("click", () => {
-        console.log('clck', entryArr);
         block.classList.remove("none");
         block.classList.add("block");
         none.classList.add("none");
